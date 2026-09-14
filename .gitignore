@@ -1,0 +1,43 @@
+# Build output
+target/
+build/
+out/
+
+# Compiled artifacts
+*.class
+
+# Local runtime data and databases
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.mv.db
+*.trace.db
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+
+# IDE and editor configuration
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.classpath
+.project
+
+# Local configuration and credentials
+.env
+application-local.yaml
+application-local.yml
+application-local.properties
+*.pem
+*.p12
+*.jks
+
+# OS files
+.DS_Store
+Thumbs.db
