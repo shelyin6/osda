@@ -107,3 +107,17 @@ confidence, sql_snippet, is_dynamic_sql, warning
 - 依赖关系、告警和解析器版本必须可追溯。
 - 对用户可见的结果中应显式展示置信度与不确定性，避免误导为生产结论。
 - 新增功能必须先判断是否属于一期范围；超出范围时以可扩展接口或后续需求记录处理，不扩大一期交付范围。
+
+## 11. 代码更新后的同步规则
+
+- 每次完成代码、配置、测试或文档修改后，必须按“检查 → 验证 → 提交 → 同步 → 确认”的顺序完成一次同步推送，不得让改动只停留在本地。
+- 变更范围检查：提交前执行 `git status --short` 与 `git diff`，确认只包含本次任务相关的改动；`target/`、构建产物、日志、IDE 配置、本地数据库文件、凭据与密钥一律不得提交，按 `.gitignore` 排除。
+- 提交前验证：至少执行 `mvn test`；涉及解析规则变更时必须运行 Golden 测试用例库。验证未通过时不得提交或推送，须先修复或回退；无法在本地验证的场景要显式说明缺口。
+- 提交信息：使用英文 Conventional Commits 前缀（`feat`、`fix`、`refactor`、`test`、`docs`、`chore`），一句话说明本次变更内容，不提交无意义的临时提交。
+- 同步顺序：先 `git pull --rebase origin master` 拉取远端最新提交；出现冲突时在本地解决并重新执行验证，再执行 `git push origin master`。
+- 推送确认：推送后执行 `git status` 与 `git log -1`，确认本地分支与 `origin/master` 一致（`up to date`），并记录本次提交哈希作为追溯依据。
+- 禁止强推：任何情况下不得使用 `git push --force` / `-f` 覆盖远端历史；推送失败时保留本地提交，排查网络或权限后重试。
+- 敏感信息管控：提交前确认未包含生产 SQL、真实表结构、账号口令或连接串；输入 SQL 与分析结果只允许保留在本地或目标内网环境。
+- 本文件的修改与本次代码改动一并提交，避免规则版本与代码版本脱节。
+- 远端约定：`origin` 使用 SSH 地址 `git@github.com:shelyin6/osda.git`；本机通过 HTTPS 访问 `github.com` 会被网络重置，因此不要改回 HTTPS 地址。
+- 推送身份：本机默认密钥 `id_rsa` 对应 `shelyin` 账号且对目标仓库无写权限；仓库内已配置 `core.sshCommand = ssh -i C:/Users/13629/.ssh/id_rsa.newGithub -o IdentitiesOnly=yes` 以 `shelyin6` 身份推送，更换机器或密钥时需同步更新该配置。
