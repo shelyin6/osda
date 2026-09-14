@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: sql-procedure-dependency-analyzer
+
+server:
+  error:
+    include-message: always
