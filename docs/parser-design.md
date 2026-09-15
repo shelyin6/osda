@@ -14,24 +14,34 @@
 
 | 引擎 | 配置值 | 实现 | 特点 |
 | --- | --- | --- | --- |
-| 内置解析器 | `native` | `OraclePlSqlParser` | 自研词法器 + 递归下降；宽松、容错、速度最快（毫秒级） |
+| 内置解析器（默认） | `native` | `OraclePlSqlParser` | 自研词法器 + 递归下降；宽松、容错、速度最快（1~2ms/文件） |
 | ANTLR 引擎 | `antlr` | `AntlrSqlAstParser` + 供应商语法 | 严格语法校验，语法树精确；对非法 SQL 会丢失错误恢复区域内的依赖 |
-| 混合引擎（默认） | `hybrid` | `HybridSqlAstParser` | 先用 ANTLR 校验与解析；一旦出现语法错误，自动回退内置解析器并保留语法告警 |
+| 混合引擎 | `hybrid` | `HybridSqlAstParser` | 先用 ANTLR 校验与解析；一旦出现语法错误，自动回退内置解析器并保留语法告警 |
 
 历史背景：内置解析器最初是因为本机 `github.com` 不可达、无法取得语法文件而实现的。代理开通后已按
 `AGENTS.md` 的建议补充 ANTLR 实现，语法与基类以 Apache-2.0 许可随仓库分发（见
 `docs/third-party-licenses.md`）。
 
-### 为什么默认用混合引擎
+### 为什么默认用内置解析器
 
-真实交付的 SQL 并不总是合法 Oracle 语法。用 `database_lineage_analysis` 目录下的真实存储过程实测：
+真实交付的 SQL 并不总是合法 Oracle 语法：`database_lineage_analysis` 目录下的两个脱敏存储过程来自已在
+内网上线并验证过的批处理模板，其声明部分是团队约定俗成的写法（变量声明后不写分号、使用
+`string`/`int` 等类型），ANTLR 对每个文件会报出 23 处语法问题。
 
-- `demo.sql`：ANTLR 报出 23 处语法问题（变量声明缺少分号、使用 `string`/`int` 等非 Oracle 类型）；
-- `demo2.sql`：第 123 行把 `AND` 误写成 `ASIN`，ANTLR 在错误恢复中丢掉了 `FROM ads.bi_ph_s75_corp_loan_dtl`
-  与 `INNER JOIN SUM.pu_org` 两条真实依赖，内置解析器仍然识别出来。
+实测对比（`ParserComparisonTest`，13 个输入：11 个 Golden 用例 + 2 个真实文件）：
 
-严格语法树在这种情况下会**静默漏检**，与 `AGENTS.md` 第 8 条「常规 DML 不得无告警漏检」冲突；
-混合引擎因此成为默认：既不放弃语法校验，也不放弃召回率。
+| 维度 | 内置解析器 `native` | ANTLR `antlr` |
+| --- | --- | --- |
+| 依赖关系 | 全部正确 | 全部正确（修掉 `demo2.sql` 的 `ASIN` 拼写错误后与 native 完全一致） |
+| 单文件耗时 | 1~2ms | 热身后 30~60ms，首次解析约 5s（JIT 冷启动） |
+| 语法告警 | 不产生 | 每个真实文件 23 条（来自约定俗成的声明写法） |
+| 依赖 | 无 | 语法文件 360KB + 生成解析器 8.8MB 源码 + ANTLR 运行时约 3.4MB |
+
+既然召回已经完全对齐，而生产文件长期存在方言漂移，默认选内置解析器把速度与稳健性放在首位；
+ANTLR 保留为可选的**语法体检**能力——它确实发现了 `demo2.sql` 第 123 行把 `AND` 误写成 `ASIN`
+的真实缺陷，也发现了 `RETURN (SELECT ...)`、表别名 `AS` 等语法细节。
+
+若后续需要"每次分析都附带语法校验"，把 `osda.parser-engine` 设为 `hybrid` 即可，无需改代码。
 
 ## 3. 解析流水线
 

@@ -12,7 +12,7 @@ public class OsdaProperties {
      * Parser engine: {@code native} (built-in recursive descent), {@code antlr} (vendor grammar) or
      * {@code hybrid} (grammar validation with a lenient fallback).
      */
-    private String parserEngine = "hybrid";
+    private String parserEngine = "native";
 
     /** Maximum characters of the original SQL kept as evidence per relation. */
     private int snippetLength = 400;

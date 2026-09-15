@@ -14,7 +14,7 @@
 | 层次 | 选型 |
 | --- | --- |
 | 后端 | Java 21、Spring Boot 3.5.7、Maven |
-| 解析 | 双引擎：内置递归下降解析器 + ANTLR Oracle PL/SQL 语法，统一产出 AST（默认混合策略） |
+| 解析 | 内置递归下降解析器（默认）+ 可选 ANTLR Oracle PL/SQL 语法，统一产出 AST |
 | 前端 | React 18 + TypeScript 5 + Vite 5，构建产物内置于 jar |
 | 部署 | 单机胖 Jar，浏览器界面不依赖 CDN，可完全离线运行 |
 
@@ -75,19 +75,21 @@ pnpm run build         # 产物写入 ../src/main/resources/static
 
 | 取值 | 行为 | 适用场景 |
 | --- | --- | --- |
-| `native` | 内置词法器 + 递归下降解析器，宽松容错，单文件毫秒级 | 追求速度、SQL 语法不规范 |
-| `antlr` | 供应商 Oracle PL/SQL 语法（ANTLR 4.13.2），严格语法校验 | 需要语法体检、SQL 合法 |
-| `hybrid`（默认） | 先用 ANTLR 解析；出现语法错误时自动回退内置解析器，并把语法问题作为告警保留 | 生产环境推荐 |
+| `native`（默认） | 内置词法器 + 递归下降解析器，宽松容错，单文件 1~2ms | 生产默认；SQL 语法不规范、方言漂移、追求速度 |
+| `antlr` | 供应商 Oracle PL/SQL 语法（ANTLR 4.13.2），严格语法校验 | 语法体检；能发现拼写与结构错误 |
+| `hybrid` | 先用 ANTLR 解析；出现语法错误时自动回退内置解析器，并把语法问题作为告警保留 | 既要语法校验又要保证不漏检 |
 
 在 `application.yaml` 中切换：
 
 ```yaml
 osda:
-  parser-engine: hybrid
+  parser-engine: native
 ```
 
-Golden 用例库与 `ParserComparisonTest` 会对三个引擎做同步对比：11 个 Golden 用例在三个引擎下
-**语义完全一致**；真实文件方面，ANTLR 会因为源文件语法不合法而漏检，混合引擎不会漏检。
+实测结论（`ParserComparisonTest` + 两个真实脱敏存储过程）：11 个 Golden 用例、`demo.sql`、
+`demo2.sql` 在三个引擎下依赖关系**完全一致**，无漏检也无多出；耗时方面内置解析器 1~2ms/文件，
+ANTLR 热身后 30~60ms/文件且首次解析有约 5 秒 JIT 冷启动。因此默认使用 `native`，ANTLR 保留为
+可选的语法体检能力（正是它发现了 `demo2.sql` 第 123 行 `ASIN` 拼写错误）。
 
 ## 测试
 
@@ -119,4 +121,5 @@ AST 方案，未复用其正则实现。具体取舍与替换方案见 `docs/par
 - 动态 SQL 仅在参数为常量字符串时解析，且置信度不超过 `MEDIUM`；变量拼接只产生告警。
 - 列级血缘、影响分析图谱属于后续迭代范围。
 - 真实交付的 SQL 常存在语法问题（例如本次实测的 `ASIN` 误写、变量声明缺分号），此时 `antlr`
-  引擎会漏检并报语法告警，建议使用默认的 `hybrid`。
+  引擎会报语法告警并可能在错误恢复中漏检；默认的 `native` 引擎不受影响，需要语法体检时再用
+  `antlr` 或 `hybrid`。
