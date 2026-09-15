@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { analyzeFiles, analyzeText, currentAnalysis, traceLineage } from "./api";
+import { analyzeFiles, analyzeText, currentAnalysis, fetchObjectSummaries, traceLineage } from "./api";
 import type {
   AnalysisResult,
   DependencyRelation,
   LineageNode,
   LineageResult,
+  ObjectSummary,
   OperationType,
 } from "./types";
 
-type Tab = "relations" | "files" | "warnings" | "lineage";
+type Tab = "objects" | "relations" | "files" | "warnings" | "lineage";
 
 const OPERATIONS: Array<OperationType | ""> = [
   "",
@@ -23,7 +24,8 @@ const OPERATIONS: Array<OperationType | ""> = [
 
 export default function App() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [tab, setTab] = useState<Tab>("relations");
+  const [objects, setObjects] = useState<ObjectSummary[]>([]);
+  const [tab, setTab] = useState<Tab>("objects");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [pastedName, setPastedName] = useState("pasted.sql");
@@ -39,7 +41,10 @@ export default function App() {
 
   useEffect(() => {
     currentAnalysis()
-      .then(setAnalysis)
+      .then((result) => {
+        setAnalysis(result);
+        return fetchObjectSummaries().then(setObjects);
+      })
       .catch(() => undefined);
   }, []);
 
@@ -84,9 +89,10 @@ export default function App() {
     try {
       const result = await action();
       setAnalysis(result);
+      setObjects(await fetchObjectSummaries().catch(() => []));
       setSelected(null);
       setLineage(null);
-      setTab("relations");
+      setTab("objects");
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : String(exception));
     } finally {
@@ -190,6 +196,9 @@ export default function App() {
               ))}
             </div>
             <div className="actions">
+              <a className="link-button" href="/api/export/objects.csv">
+                导出对象汇总 CSV
+              </a>
               <a className="link-button" href="/api/export/relations.csv">
                 导出关系 CSV
               </a>
@@ -204,6 +213,9 @@ export default function App() {
 
           <section className="panel">
             <nav className="tabs">
+              <button className={tab === "objects" ? "active" : ""} onClick={() => setTab("objects")}>
+                表级汇总（去重）{objects.length > 0 ? ` (${objects.length})` : ""}
+              </button>
               <button className={tab === "relations" ? "active" : ""} onClick={() => setTab("relations")}>
                 依赖关系
               </button>
@@ -217,6 +229,67 @@ export default function App() {
                 上下游追溯
               </button>
             </nav>
+
+            {tab === "objects" && (
+              <div>
+                <p className="hint">
+                  按目标对象去重后的结果：同一对象的多次出现合并为一行，操作集合、读写次数与涉及的
+                  程序单元一并汇总。点击任意一行可跳到该对象的原始依赖明细与证据。
+                </p>
+                <table className="grid">
+                  <thead>
+                    <tr>
+                      <th>对象</th>
+                      <th>操作</th>
+                      <th>关系数</th>
+                      <th>读 / 写</th>
+                      <th>程序单元</th>
+                      <th>涉及文件</th>
+                      <th>置信度</th>
+                      <th>动态</th>
+                      <th>说明</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {objects.map((item) => (
+                      <tr
+                        key={item.qualifiedName}
+                        onClick={() => {
+                          setOperation("");
+                          setConfidence("");
+                          setKeyword(item.qualifiedName);
+                          setTab("relations");
+                        }}
+                      >
+                        <td>{item.qualifiedName}</td>
+                        <td>
+                          {item.operations.map((operation) => (
+                            <span key={operation} className={`badge op-${operation.toLowerCase()}`}>
+                              {operation}
+                            </span>
+                          ))}
+                        </td>
+                        <td>{item.relationCount}</td>
+                        <td>
+                          {item.readCount} / {item.writeCount}
+                        </td>
+                        <td title={item.sourceUnits.join("、")}>
+                          {item.sourceUnits.length} 个
+                        </td>
+                        <td title={item.sourceFiles.join("、")}>{item.sourceFiles.length} 个</td>
+                        <td>
+                          <span className={`badge conf-${item.confidence.toLowerCase()}`}>
+                            {item.confidence}
+                          </span>
+                        </td>
+                        <td>{item.dynamicSql ? "是" : "否"}</td>
+                        <td>{item.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {tab === "relations" && (
               <div>

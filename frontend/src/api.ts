@@ -1,4 +1,4 @@
-import type { AnalysisResult, LineageResult } from "./types";
+import type { AnalysisResult, LineageResult, ObjectSummary } from "./types";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: "same-origin", ...init });
@@ -25,6 +25,10 @@ export function analyzeText(name: string, content: string): Promise<AnalysisResu
 
 export function currentAnalysis(): Promise<AnalysisResult> {
   return request<AnalysisResult>("/api/analysis/current");
+}
+
+export function fetchObjectSummaries(): Promise<ObjectSummary[]> {
+  return request<ObjectSummary[]>("/api/objects");
 }
 
 export function traceLineage(

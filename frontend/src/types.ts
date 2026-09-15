@@ -67,6 +67,24 @@ export interface AnalysisResult {
   warnings: ParseWarning[];
 }
 
+/** De-duplicated, table level result: one entry per target object. */
+export interface ObjectSummary {
+  schema: string | null;
+  object: string;
+  qualifiedName: string;
+  operations: OperationType[];
+  relationCount: number;
+  readCount: number;
+  writeCount: number;
+  sourceUnits: string[];
+  sourceFiles: string[];
+  confidence: Confidence;
+  dynamicSql: boolean;
+  firstLocation: SourceLocation | null;
+  sampleSnippet: string;
+  note: string;
+}
+
 export interface LineageNode {
   id: string;
   nodeType: "TABLE" | "PROGRAM_UNIT";

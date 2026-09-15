@@ -81,9 +81,16 @@ pnpm 版本注意事项：
 | POST | `/api/analysis/text` | 分析粘贴代码，请求体 `{"name":"x.sql","content":"..."}` |
 | GET | `/api/analysis/current` | 最近一次分析结果 |
 | GET | `/api/relations` | 关系列表，支持 `operation`、`confidence`、`file`、`target`、`keyword` 过滤 |
+| GET | `/api/objects` | **去重后的表级结果**：每个目标对象一行，含操作集合、读写次数、涉及单元与文件、最保守置信度 |
 | GET | `/api/lineage` | 上下游追溯，参数 `object`、`direction=UPSTREAM|DOWNSTREAM`、`maxDepth` |
 | GET | `/api/export/relations.csv` | 导出关系 CSV（UTF-8 BOM，Excel 可直接打开） |
+| GET | `/api/export/objects.csv` | 导出去重后的表级结果 CSV |
 | GET | `/api/export/analysis.json` | 导出完整分析结果 JSON |
+
+界面默认进入「表级汇总（去重）」页签：同一对象的多次出现合并为一行，展示操作集合（READ/INSERT/…）、
+关系数、读/写次数、涉及程序单元与文件数、置信度与说明（例如「该对象既有读取也有写入」）。
+点击任意一行会跳到「依赖关系」页并按该对象过滤，便于直接查看原始 SQL 片段与行号证据。
+实测两个真实文件：12 条关系去重后为 8 个对象，`SUM.PU_ORG` 的 3 次出现合并为一行。
 
 ## 解析引擎
 
@@ -142,3 +149,7 @@ AST 方案，未复用其正则实现。具体取舍与替换方案见 `docs/par
 - 真实交付的 SQL 常存在语法问题（例如本次实测的 `ASIN` 误写、变量声明缺分号），此时 `antlr`
   引擎会报语法告警并可能在错误恢复中漏检；默认的 `native` 引擎不受影响，需要语法体检时再用
   `antlr` 或 `hybrid`。
+
+二期若要从 KingbaseES 直接按存储过程名查询（而不是上传文件），实现方案见
+[docs/phase2-database-source.md](docs/phase2-database-source.md)：抽象"源码来源"、只读账号、
+增量缓存与分阶段落地建议均已给出。一期代码不会连接任何数据库。

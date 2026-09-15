@@ -2,13 +2,14 @@ package com.osda.web;
 
 import com.osda.analysis.model.AnalysisResult;
 import com.osda.analysis.model.DependencyRelation;
+import com.osda.analysis.model.ObjectSummary;
 import com.osda.analysis.service.AnalysisService;
+import com.osda.analysis.service.ObjectSummaryService;
 import com.osda.analysis.service.SourceInput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,9 +25,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class AnalysisController {
 
     private final AnalysisService analysisService;
+    private final ObjectSummaryService objectSummaryService;
 
-    public AnalysisController(AnalysisService analysisService) {
+    public AnalysisController(
+            AnalysisService analysisService,
+            ObjectSummaryService objectSummaryService
+    ) {
         this.analysisService = analysisService;
+        this.objectSummaryService = objectSummaryService;
     }
 
     /** Batch upload of .sql files. */
@@ -68,14 +74,13 @@ public class AnalysisController {
         return analysisService.current().files().stream().map(report -> report.fileName()).toList();
     }
 
+    /** De-duplicated table level result: one row per target object. */
+    @GetMapping("/objects")
+    public List<ObjectSummary> objects() {
+        return objectSummaryService.summaries();
+    }
+
     public record AnalysisTextRequest(String name, String content) {
     }
 
-    /** Exposed for the lineage page, which needs the list of known objects. */
-    @GetMapping("/analysis/objects")
-    public Set<String> objects() {
-        return analysisService.current().relations().stream()
-                .map(DependencyRelation::targetKey)
-                .collect(java.util.stream.Collectors.toCollection(java.util.TreeSet::new));
-    }
 }
