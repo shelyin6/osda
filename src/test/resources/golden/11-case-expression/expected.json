@@ -1,0 +1,5 @@
+[
+  {"target": "DEMO.T_TARGET", "operation": "INSERT", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "11-case-expression", "line": 1},
+  {"target": "DEMO.T_SOURCE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "11-case-expression", "line": 4},
+  {"target": "DEMO.T_EXTRA", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "11-case-expression", "line": 5}
+]

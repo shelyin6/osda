@@ -1,0 +1,4 @@
+[
+  {"target": "DEMO.T_TARGET", "operation": "MERGE", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "06-merge", "line": 1},
+  {"target": "DEMO.T_SOURCE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "06-merge", "line": 2}
+]

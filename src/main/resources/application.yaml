@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: osda
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 60MB
+
+osda:
+  # Parser identifier written into every analysis result for traceability.
+  parser-version: osda-parser/0.1.0
+  # Maximum characters of the original SQL kept as evidence per relation.
+  snippet-length: 400
+  # Maximum depth allowed for upstream/downstream expansion.
+  max-lineage-depth: 10

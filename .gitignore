@@ -3,6 +3,13 @@ target/
 build/
 out/
 
+# Frontend build output and tooling
+node_modules/
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+.pnpm-store/
+
 # Compiled artifacts
 *.class
 
@@ -41,3 +48,7 @@ application-local.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+# Business SQL must never enter the repository; keep only versioned test fixtures.
+*.sql
+!src/test/resources/golden/**/*.sql

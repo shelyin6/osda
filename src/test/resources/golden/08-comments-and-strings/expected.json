@@ -1,0 +1,5 @@
+[
+  {"target": "DEMO.REAL_TARGET", "operation": "INSERT", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_DOC", "line": 7},
+  {"target": "DEMO.REAL_SOURCE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_DOC", "line": 7},
+  {"target": "DEMO.REAL_OTHER", "operation": "UPDATE", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_DOC", "line": 8}
+]

@@ -1,0 +1,3 @@
+# pnpm 11 起，构建脚本白名单配置从 package.json 迁移到工作区配置文件。
+onlyBuiltDependencies:
+  - esbuild

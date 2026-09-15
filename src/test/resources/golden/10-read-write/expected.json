@@ -1,0 +1,5 @@
+[
+  {"target": "DEMO.T_HIST", "operation": "INSERT", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_RW", "line": 3},
+  {"target": "DEMO.T_HIST", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_RW", "line": 3},
+  {"target": "DEMO.T_HIST", "operation": "READ_WRITE", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_RW", "line": 3}
+]

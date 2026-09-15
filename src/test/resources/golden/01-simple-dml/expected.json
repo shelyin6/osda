@@ -1,0 +1,7 @@
+[
+  {"target": "DEMO.T_TARGET", "operation": "INSERT", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "01-simple-dml", "line": 1},
+  {"target": "DEMO.T_SOURCE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "01-simple-dml", "line": 1},
+  {"target": "DEMO.T_OTHER", "operation": "UPDATE", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "01-simple-dml", "line": 3},
+  {"target": "DEMO.T_LOOKUP", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "01-simple-dml", "line": 3},
+  {"target": "DEMO.T_TEMP", "operation": "DELETE", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "01-simple-dml", "line": 5}
+]

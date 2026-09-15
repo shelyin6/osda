@@ -1,0 +1,6 @@
+[
+  {"target": "DEMO.T_OUTER", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "05-nested-sql", "line": 2},
+  {"target": "DEMO.T_MIDDLE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "05-nested-sql", "line": 5},
+  {"target": "DEMO.T_INNER", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "05-nested-sql", "line": 7},
+  {"target": "DEMO.T_DEEP", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "05-nested-sql", "line": 8}
+]

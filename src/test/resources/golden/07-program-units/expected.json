@@ -1,0 +1,7 @@
+[
+  {"target": "DEMO.T_TARGET", "operation": "INSERT", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_LOAD", "line": 3},
+  {"target": "DEMO.T_SOURCE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_LOAD", "line": 3},
+  {"target": "DEMO.T_LABEL", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.F_LABEL", "line": 8},
+  {"target": "DEMO.T_INNER", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_INNER", "line": 14},
+  {"target": "DEMO.T_STAGE", "operation": "DELETE", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "DEMO.P_OUTER", "line": 18}
+]

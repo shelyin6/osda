@@ -1,0 +1,4 @@
+[
+  {"target": "DEMO.T_BASE", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "03-cte", "line": 2},
+  {"target": "DEMO.T_LABEL", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "03-cte", "line": 5}
+]

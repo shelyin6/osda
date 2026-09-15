@@ -1,0 +1,5 @@
+[
+  {"target": "DEMO.T_A", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "02-join-alias", "line": 2},
+  {"target": "DEMO.T_B", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "02-join-alias", "line": 3},
+  {"target": "DEMO.T_C", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "02-join-alias", "line": 4}
+]

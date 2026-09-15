@@ -1,0 +1,5 @@
+[
+  {"target": "DEMO.T_METRIC", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "04-subquery", "line": 2},
+  {"target": "DEMO.T_MAIN", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "04-subquery", "line": 3},
+  {"target": "DEMO.T_FILTER", "operation": "READ", "confidence": "HIGH", "dynamicSql": false, "sourceUnit": "04-subquery", "line": 4}
+]

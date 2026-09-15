@@ -1,0 +1,4 @@
+[
+  {"target": "DEMO.T_CONST_TARGET", "operation": "INSERT", "confidence": "MEDIUM", "dynamicSql": true, "sourceUnit": "DEMO.P_DYN", "line": 5},
+  {"target": "DEMO.T_CONST_SOURCE", "operation": "READ", "confidence": "MEDIUM", "dynamicSql": true, "sourceUnit": "DEMO.P_DYN", "line": 5}
+]
