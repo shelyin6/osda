@@ -12,6 +12,9 @@ spring:
 osda:
   # Parser identifier written into every analysis result for traceability.
   parser-version: osda-parser/0.1.0
+  # native: built-in recursive descent parser; antlr: vendored Oracle PL/SQL grammar;
+  # hybrid: grammar validation with automatic lenient fallback when the SQL has syntax errors.
+  parser-engine: hybrid
   # Maximum characters of the original SQL kept as evidence per relation.
   snippet-length: 400
   # Maximum depth allowed for upstream/downstream expansion.

@@ -14,7 +14,7 @@
 | 层次 | 选型 |
 | --- | --- |
 | 后端 | Java 21、Spring Boot 3.5.7、Maven |
-| 解析 | 自研词法器 + 递归下降解析器（产出 AST），实现 `SqlAstParser` 接口 |
+| 解析 | 双引擎：内置递归下降解析器 + ANTLR Oracle PL/SQL 语法，统一产出 AST（默认混合策略） |
 | 前端 | React 18 + TypeScript 5 + Vite 5，构建产物内置于 jar |
 | 部署 | 单机胖 Jar，浏览器界面不依赖 CDN，可完全离线运行 |
 
@@ -69,6 +69,26 @@ pnpm run build         # 产物写入 ../src/main/resources/static
 | GET | `/api/export/relations.csv` | 导出关系 CSV（UTF-8 BOM，Excel 可直接打开） |
 | GET | `/api/export/analysis.json` | 导出完整分析结果 JSON |
 
+## 解析引擎
+
+`osda.parser-engine` 支持三种取值，两个引擎都实现 `SqlAstParser` 并产出同一套 AST：
+
+| 取值 | 行为 | 适用场景 |
+| --- | --- | --- |
+| `native` | 内置词法器 + 递归下降解析器，宽松容错，单文件毫秒级 | 追求速度、SQL 语法不规范 |
+| `antlr` | 供应商 Oracle PL/SQL 语法（ANTLR 4.13.2），严格语法校验 | 需要语法体检、SQL 合法 |
+| `hybrid`（默认） | 先用 ANTLR 解析；出现语法错误时自动回退内置解析器，并把语法问题作为告警保留 | 生产环境推荐 |
+
+在 `application.yaml` 中切换：
+
+```yaml
+osda:
+  parser-engine: hybrid
+```
+
+Golden 用例库与 `ParserComparisonTest` 会对三个引擎做同步对比：11 个 Golden 用例在三个引擎下
+**语义完全一致**；真实文件方面，ANTLR 会因为源文件语法不合法而漏检，混合引擎不会漏检。
+
 ## 测试
 
 Golden 用例库位于 `src/test/resources/golden/`，覆盖普通 DML、JOIN、别名、CTE、子查询、嵌套 SQL、
@@ -77,6 +97,9 @@ MERGE、过程/函数/包体、注释与字符串干扰、动态 SQL、同一对
 ```bash
 mvn test
 ```
+
+`ParserComparisonTest` 会对内置、ANTLR、混合三个引擎做同源对比，输出每条差异（漏检、多出、告警、
+耗时）并断言：Golden 用例三引擎语义一致，混合引擎在真实文件上不漏检。
 
 真实大体量回归：`ExternalDemoSqlIntegrationTest` 会读取仓库外的真实存储过程文件并校验结构不变量
 （不使用其中的业务名称）。定位顺序为系统属性 `osda.external.sql.dir`、环境变量
@@ -95,3 +118,5 @@ AST 方案，未复用其正则实现。具体取舍与替换方案见 `docs/par
 - `TRUNCATE TABLE`、`OPEN ... FOR` 动态游标、`DBMS_SQL` 调用当前不产出依赖关系。
 - 动态 SQL 仅在参数为常量字符串时解析，且置信度不超过 `MEDIUM`；变量拼接只产生告警。
 - 列级血缘、影响分析图谱属于后续迭代范围。
+- 真实交付的 SQL 常存在语法问题（例如本次实测的 `ASIN` 误写、变量声明缺分号），此时 `antlr`
+  引擎会漏检并报语法告警，建议使用默认的 `hybrid`。

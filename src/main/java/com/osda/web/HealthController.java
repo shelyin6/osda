@@ -24,6 +24,7 @@ public class HealthController {
         return Map.of(
                 "status", "UP",
                 "parserVersion", properties.getParserVersion(),
+                "parserEngine", properties.getParserEngine(),
                 "hasAnalysis", analysisService.hasResult());
     }
 }

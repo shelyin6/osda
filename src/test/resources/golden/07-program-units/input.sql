@@ -17,5 +17,5 @@ CREATE OR REPLACE PACKAGE BODY demo.pkg AS
     BEGIN
         DELETE FROM demo.t_stage WHERE id > 0;
     END;
-END demo.pkg;
+END pkg;
 /

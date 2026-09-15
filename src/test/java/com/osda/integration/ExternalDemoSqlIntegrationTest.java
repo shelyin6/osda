@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import com.osda.analysis.model.DependencyRelation;
 import com.osda.analysis.model.OperationType;
 import com.osda.extraction.DependencyExtractor;
+import com.osda.parser.OraclePlSqlParser;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.Test;
  */
 class ExternalDemoSqlIntegrationTest {
 
-    private final DependencyExtractor extractor = new DependencyExtractor();
+    private final DependencyExtractor extractor = new DependencyExtractor(new OraclePlSqlParser());
 
     @Test
     void analyzesLargeRealWorldProcedureFiles() throws Exception {

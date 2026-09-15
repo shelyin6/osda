@@ -8,6 +8,12 @@ public class OsdaProperties {
     /** Parser identifier stored in every analysis result for traceability. */
     private String parserVersion = "osda-parser/0.1.0";
 
+    /**
+     * Parser engine: {@code native} (built-in recursive descent), {@code antlr} (vendor grammar) or
+     * {@code hybrid} (grammar validation with a lenient fallback).
+     */
+    private String parserEngine = "hybrid";
+
     /** Maximum characters of the original SQL kept as evidence per relation. */
     private int snippetLength = 400;
 
@@ -20,6 +26,14 @@ public class OsdaProperties {
 
     public void setParserVersion(String parserVersion) {
         this.parserVersion = parserVersion;
+    }
+
+    public String getParserEngine() {
+        return parserEngine;
+    }
+
+    public void setParserEngine(String parserEngine) {
+        this.parserEngine = parserEngine;
     }
 
     public int getSnippetLength() {

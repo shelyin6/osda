@@ -8,9 +8,9 @@ import com.osda.analysis.model.SourceLocation;
 import com.osda.analysis.model.SourceType;
 import com.osda.analysis.model.TargetType;
 import com.osda.parser.Ast;
-import com.osda.parser.OraclePlSqlParser;
 import com.osda.parser.ParseIssue;
 import com.osda.parser.ParsedFile;
+import com.osda.parser.SqlAstParser;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -31,6 +31,12 @@ public class DependencyExtractor {
 
     /** Oracle pseudo table: never a real dependency. */
     private static final Set<String> IGNORED_OBJECTS = Set.of("DUAL");
+
+    private final SqlAstParser parser;
+
+    public DependencyExtractor(SqlAstParser parser) {
+        this.parser = parser;
+    }
 
     public ExtractionResult extract(String fileName, String source, int snippetLength) {
         ParsedFile parsedFile = parse(source);
@@ -312,9 +318,11 @@ public class DependencyExtractor {
         return result;
     }
 
-    /** The parser keeps per-run state, so every parse gets its own instance. */
+    /** Guarded because a parser instance may keep per-run state. */
     private ParsedFile parse(String source) {
-        return new OraclePlSqlParser().parse(source);
+        synchronized (parser) {
+            return parser.parse(source);
+        }
     }
 
     public record ExtractionResult(

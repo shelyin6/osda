@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.osda.analysis.model.DependencyRelation;
 import com.osda.extraction.DependencyExtractor;
+import com.osda.parser.OraclePlSqlParser;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,7 +31,7 @@ class GoldenSqlTest {
     private static final Path GOLDEN_ROOT = Path.of("src", "test", "resources", "golden");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private final DependencyExtractor extractor = new DependencyExtractor();
+    private final DependencyExtractor extractor = new DependencyExtractor(new OraclePlSqlParser());
 
     static Stream<String> cases() throws IOException {
         try (Stream<Path> paths = Files.list(GOLDEN_ROOT)) {

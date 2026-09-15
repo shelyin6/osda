@@ -7,15 +7,31 @@
 `DELETE FROM`。这条路线在真实 PL/SQL 上会产生系统性误报与漏报，且与 `AGENTS.md` 第 4 条
 「解析核心必须基于语法树（AST），不得以正则表达式作为唯一或主要实现」直接冲突。
 
-## 2. 为什么当前不是 ANTLR
+## 2. 两套解析引擎与混合策略
 
-`AGENTS.md` 推荐 ANTLR Oracle PL/SQL Grammar，但该语法文件（grammars-v4 的
-`PlSqlLexer.g4` / `PlSqlParser.g4`）需要从 GitHub 获取，而本机网络对 `github.com` 的连接会被重置，
-离线环境下无法取得语法资产。因此这一版采用**自研词法器 + 递归下降解析器**：
+`AGENTS.md` 推荐 ANTLR Oracle PL/SQL Grammar。项目现在同时具备两套语法树生产者，二者都实现
+`SqlAstParser`，产出同一个 `Ast`：
 
-- 它同样产出语法树（`Ast`），决策全部基于词法单元，不使用正则判断依赖；
-- 不引入任何新增运行时依赖，符合离线交付约束；
-- 解析器实现被隔离在 `SqlAstParser` 接口之后。
+| 引擎 | 配置值 | 实现 | 特点 |
+| --- | --- | --- | --- |
+| 内置解析器 | `native` | `OraclePlSqlParser` | 自研词法器 + 递归下降；宽松、容错、速度最快（毫秒级） |
+| ANTLR 引擎 | `antlr` | `AntlrSqlAstParser` + 供应商语法 | 严格语法校验，语法树精确；对非法 SQL 会丢失错误恢复区域内的依赖 |
+| 混合引擎（默认） | `hybrid` | `HybridSqlAstParser` | 先用 ANTLR 校验与解析；一旦出现语法错误，自动回退内置解析器并保留语法告警 |
+
+历史背景：内置解析器最初是因为本机 `github.com` 不可达、无法取得语法文件而实现的。代理开通后已按
+`AGENTS.md` 的建议补充 ANTLR 实现，语法与基类以 Apache-2.0 许可随仓库分发（见
+`docs/third-party-licenses.md`）。
+
+### 为什么默认用混合引擎
+
+真实交付的 SQL 并不总是合法 Oracle 语法。用 `database_lineage_analysis` 目录下的真实存储过程实测：
+
+- `demo.sql`：ANTLR 报出 23 处语法问题（变量声明缺少分号、使用 `string`/`int` 等非 Oracle 类型）；
+- `demo2.sql`：第 123 行把 `AND` 误写成 `ASIN`，ANTLR 在错误恢复中丢掉了 `FROM ads.bi_ph_s75_corp_loan_dtl`
+  与 `INNER JOIN SUM.pu_org` 两条真实依赖，内置解析器仍然识别出来。
+
+严格语法树在这种情况下会**静默漏检**，与 `AGENTS.md` 第 8 条「常规 DML 不得无告警漏检」冲突；
+混合引擎因此成为默认：既不放弃语法校验，也不放弃召回率。
 
 ## 3. 解析流水线
 
@@ -74,9 +90,16 @@
 
 ## 7. 切换到 ANTLR 的路径
 
-1. 取得合法的 Oracle PL/SQL 语法文件并纳入仓库（含许可证清单）。
-2. 在 `pom.xml` 增加 `antlr4-maven-plugin` 与 `antlr4-runtime` 依赖。
-3. 新增 `AntlrSqlAstParser implements SqlAstParser`，把 ANTLR 语法树映射为现有 `Ast` 节点。
-4. 在 `DependencyExtractor` 中切换实现类即可，抽取层、服务层、接口层与 Golden 用例无需改动。
+该路径已完成：
 
-Golden 用例库（`src/test/resources/golden/`）是这条迁移路径的安全网：替换解析器后必须全部保持通过。
+1. 语法文件与基类已纳入仓库（Apache-2.0，保留版权头）。
+2. `pom.xml` 已加入 `antlr4-maven-plugin` 与 `antlr4-runtime` 4.13.2。
+3. `AntlrSqlAstParser` 把 ANTLR 语法树映射为既有 `Ast`：程序单元取 `create_procedure_body` /
+   `create_function_body` / `create_package_body` 与嵌套 `procedure_body`；语句取 `select_statement` /
+   `insert_statement` / `update_statement` / `delete_statement` / `merge_statement` /
+   `execute_immediate`；表引用取 `from_clause` 内的 `tableview_name`；CTE 名称取
+   `subquery_factoring_clause`。另外单独处理表达式内子查询（如 `RETURN (SELECT ...)`，该结构在
+   ANTLR 树中不是 `select_statement`），否则会漏掉这类依赖。
+4. 引擎通过 `osda.parser-engine` 选择，抽取层、服务层、接口层与 Golden 用例不随引擎变化。
+
+后续升级语法版本时：替换 `.g4` 与基类，重新生成后运行 `ParserComparisonTest` 与 Golden 用例即可。
