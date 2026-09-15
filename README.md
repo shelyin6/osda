@@ -60,6 +60,15 @@ pnpm install
 pnpm run build         # 产物写入 ../src/main/resources/static
 ```
 
+pnpm 版本注意事项：
+
+- pnpm 12 起，安装脚本白名单的配置项由 `onlyBuiltDependencies` 改为 `allowBuilds` 映射。
+  仓库的 `frontend/pnpm-workspace.yaml` **同时保留两种写法**，pnpm 10/11/12 都能直接 `pnpm install`。
+- 若遇到 `ERR_PNPM_IGNORED_BUILDS: esbuild@...`，说明白名单配置缺失或格式不对；
+  最省事的做法是在 `frontend` 目录执行 `pnpm approve-builds` 并按提示勾选 `esbuild`，它会自动写回正确配置。
+- `frontend/.npmrc` 已把 registry 指向 npmmirror 镜像，并设置 `node-linker=hoisted`
+  以避免 Windows 下的符号链接权限问题。
+
 内网部署：把 `target/osda-0.1.0-SNAPSHOT.jar` 拷贝到目标机器，`java -jar` 启动后浏览器访问
 `http://localhost:8080`。界面资源已打进 jar，不需要 node、不需要外网。
 

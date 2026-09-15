@@ -1,3 +1,8 @@
-# pnpm 11 起，构建脚本白名单配置从 package.json 迁移到工作区配置文件。
+# pnpm 12 起使用 allowBuilds 映射显式声明哪些依赖可以执行安装脚本；
+# 未列入的依赖会被拦截并报 ERR_PNPM_IGNORED_BUILDS（esbuild 需要执行安装脚本）。
+allowBuilds:
+  esbuild: true
+
+# pnpm 10/11 的等价配置，保留以便旧版本 pnpm 也能正常安装。
 onlyBuiltDependencies:
   - esbuild
