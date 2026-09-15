@@ -114,7 +114,7 @@ confidence, sql_snippet, is_dynamic_sql, warning
 - 变更范围检查：提交前执行 `git status --short` 与 `git diff`，确认只包含本次任务相关的改动；`target/`、构建产物、日志、IDE 配置、本地数据库文件、凭据与密钥一律不得提交，按 `.gitignore` 排除。
 - 提交前验证：至少执行 `mvn test`；涉及解析规则变更时必须运行 Golden 测试用例库。验证未通过时不得提交或推送，须先修复或回退；无法在本地验证的场景要显式说明缺口。
 - 提交信息：使用英文 Conventional Commits 前缀（`feat`、`fix`、`refactor`、`test`、`docs`、`chore`），一句话说明本次变更内容，不提交无意义的临时提交。
-- 同步顺序：先 `git pull --rebase origin master` 拉取远端最新提交；出现冲突时在本地解决并重新执行验证，再执行 `git push origin master`。
+- 同步顺序：先 `git add` + `git commit` 完成本地提交，再 `git pull --rebase origin master` 拉取远端最新提交（有未提交改动时 rebase 会失败，必须先提交或暂存）；出现冲突时在本地解决并重新执行验证，最后执行 `git push origin master`。
 - 推送确认：推送后执行 `git status` 与 `git log -1`，确认本地分支与 `origin/master` 一致（`up to date`），并记录本次提交哈希作为追溯依据。
 - 禁止强推：任何情况下不得使用 `git push --force` / `-f` 覆盖远端历史；推送失败时保留本地提交，排查网络或权限后重试。
 - 敏感信息管控：提交前确认未包含生产 SQL、真实表结构、账号口令或连接串；输入 SQL 与分析结果只允许保留在本地或目标内网环境。
