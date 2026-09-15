@@ -22,6 +22,20 @@
 `AGENTS.md` 的建议补充 ANTLR 实现，语法与基类以 Apache-2.0 许可随仓库分发（见
 `docs/third-party-licenses.md`）。
 
+### 构建形态与源码布局
+
+ANTLR 语法与运行时**不进发布包**，只在 `with-antlr` profile 下参与构建：
+
+| 目录 | 是否默认编译 | 内容 |
+| --- | --- | --- |
+| `src/main/java`、`src/test/java` | 是 | 领域模型、内置解析器、服务、接口、Golden 用例 |
+| `src/antlr/java` | 否（`-Pwith-antlr` 时由 build-helper 加入） | `AntlrSqlAstParser`、`HybridSqlAstParser`、ANTLR 基类 |
+| `src/antlr/test/java` | 否（同上，测试源根） | `ParserComparisonTest` 三引擎对比测试 |
+| `src/antlr/grammar` | 否（同上，作为 ANTLR 插件源目录） | `PlSqlLexer.g4`、`PlSqlParser.g4` |
+
+引擎由 `SqlAstParserFactory` 反射装配：请求的引擎类不在当前构建中时，记录 WARN 并回退内置解析器，
+保证精简包在任何配置下都能正常启动。
+
 ### 为什么默认用内置解析器
 
 真实交付的 SQL 并不总是合法 Oracle 语法：`database_lineage_analysis` 目录下的两个脱敏存储过程来自已在

@@ -45,6 +45,13 @@ mvn -DskipTests package
 java -jar target/osda-0.1.0-SNAPSHOT.jar
 ```
 
+两种构建形态：
+
+| 命令 | 产物 | 说明 |
+| --- | --- | --- |
+| `mvn -DskipTests package` | 约 21.7 MB | **发布默认**：只含内置解析器，不含 ANTLR 语法与运行时 |
+| `mvn -Pwith-antlr -DskipTests package` | 约 24.9 MB | 额外包含 ANTLR 引擎与三引擎对比测试，用于语法体检 |
+
 前端（需要 Node 与 pnpm；仅前端改动时需要）：
 
 ```bash
@@ -78,6 +85,9 @@ pnpm run build         # 产物写入 ../src/main/resources/static
 | `native`（默认） | 内置词法器 + 递归下降解析器，宽松容错，单文件 1~2ms | 生产默认；SQL 语法不规范、方言漂移、追求速度 |
 | `antlr` | 供应商 Oracle PL/SQL 语法（ANTLR 4.13.2），严格语法校验 | 语法体检；能发现拼写与结构错误 |
 | `hybrid` | 先用 ANTLR 解析；出现语法错误时自动回退内置解析器，并把语法问题作为告警保留 | 既要语法校验又要保证不漏检 |
+
+`antlr` 与 `hybrid` 只存在于 `-Pwith-antlr` 构建中。若在精简包里配置了这两个值，服务会**自动回退**
+到内置解析器并在日志中给出警告，`/api/health` 的 `parserEngineImpl` 字段会显示实际生效的实现类。
 
 在 `application.yaml` 中切换：
 
